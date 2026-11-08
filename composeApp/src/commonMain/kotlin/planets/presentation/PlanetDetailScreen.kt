@@ -24,9 +24,11 @@ import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.Link
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -43,13 +45,17 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.window.core.layout.WindowWidthSizeClass
 import coil3.compose.AsyncImage
 import getPlatform
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import planets.domain.domain.Planet
+import solarsystemkmp.composeapp.generated.resources.*
+
 
 
 @OptIn(ExperimentalSharedTransitionApi::class)
@@ -62,16 +68,33 @@ fun SharedTransitionScope.PlanetDetailScreen(
     val planetsViewModel = koinInject<PlanetsViewModel>()
     val state by planetsViewModel.state.collectAsState()
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(planetId) {
         planetsViewModel.getPlanetById(planetId)
     }
 
-    state.planet?.let { planet ->
-        PlanetDetailScreenContent(
-            animatedVisibilityScope = animatedVisibilityScope,
-            planet = planet,
-            navigateBack = navigateBack
-        )
+    if (state.isLoading) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator()
+        }
+    }
+    else if (state.message.isNotEmpty()) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Text(
+                text = state.message,
+                color = MaterialTheme.colorScheme.error,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(16.dp)
+            )
+        }
+    }
+    else {
+        state.planet?.let { planet ->
+            PlanetDetailScreenContent(
+                animatedVisibilityScope = animatedVisibilityScope,
+                planet = planet,
+                navigateBack = navigateBack
+            )
+        }
     }
 }
 
@@ -121,7 +144,7 @@ private fun SharedTransitionScope.PlanetDetailMobileContent(
             .verticalScroll(scrollState),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        TopBar(name = planet.name, navigateBack = navigateBack)
+        TopBar(name = getLocalizedPlanetName(planet.name), navigateBack = navigateBack)
         PlanetImage(
             modifier = modifier,
             animatedVisibilityScope = animatedVisibilityScope,
@@ -143,7 +166,7 @@ private fun SharedTransitionScope.PlanetDetailNonMobileContent(
     val scrollState = rememberScrollState()
 
     Column(modifier = modifier.fillMaxSize()) {
-        TopBar(name = planet.name, navigateBack = navigateBack)
+        TopBar(name = getLocalizedPlanetName(planet.name), navigateBack = navigateBack)
         Row(modifier = modifier.fillMaxSize()) {
             Box(
                 modifier = modifier
@@ -220,12 +243,12 @@ private fun PlanetDetailItems(
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Text(
-            text = "Description",
+            text = stringResource(Res.string.description_label),
             fontSize = 26.sp,
             fontWeight = FontWeight.Bold
         )
         Text(
-            text = planet.description,
+            text = getLocalizedPlanetDescription(planet.name),
             fontSize = 16.sp
         )
     }
@@ -236,11 +259,22 @@ private fun PlanetDetailItems(
             .fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        DetailCard(label = "Order", value = planet.planetOrder.toString())
-        DetailCard(label = "Mass", value = planet.mass)
-        DetailCard(label = "Volume", value = planet.volume)
+        DetailCard(label = stringResource(Res.string.order_label), value = planet.planetOrder.toString())
+
+        val localizedMass = planet.mass.replace("kg", stringResource(Res.string.unit_kg))
+        DetailCard(label = stringResource(Res.string.mass_label), value = localizedMass)
+
+        val localizedVolume = planet.volume.replace("km^3", stringResource(Res.string.unit_km3))
+        DetailCard(label = stringResource(Res.string.volume_label), value = localizedVolume)
+
+        val localizedSource = if (planet.source == "Wikipedia") {
+            stringResource(Res.string.source_wikipedia)
+        } else {
+            planet.source
+        }
+
         DetailCardWithIcon(
-            label = planet.source,
+            label = localizedSource,
             icon = Icons.Default.Link,
             onClick = { getPlatform().openUrl(planet.wikiLink) }
         )

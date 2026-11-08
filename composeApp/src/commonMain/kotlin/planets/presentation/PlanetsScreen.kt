@@ -37,21 +37,28 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.window.core.layout.WindowWidthSizeClass
 import coil3.compose.AsyncImage
 import getPlatform
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import planets.domain.domain.Planet
+import solarsystemkmp.composeapp.generated.resources.*
+import solarsystemkmp.composeapp.generated.resources.Res
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material3.ExperimentalMaterial3Api
 
-@OptIn(ExperimentalSharedTransitionApi::class)
+@OptIn(ExperimentalSharedTransitionApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun SharedTransitionScope.PlanetsScreen(
     modifier: Modifier = Modifier,
     animatedVisibilityScope: AnimatedVisibilityScope,
     navigateToPlanetDetailScreen: (Int) -> Unit,
+    navigateToAboutScreen: () -> Unit
 ) {
 
     val planetsViewModel = koinInject<PlanetsViewModel>()
@@ -63,7 +70,21 @@ fun SharedTransitionScope.PlanetsScreen(
     val windowAdaptiveInfo = currentWindowAdaptiveInfo()
     val isCompacted = windowAdaptiveInfo.windowSizeClass.windowWidthSizeClass == WindowWidthSizeClass.COMPACT
 
-    Scaffold { paddingValues ->
+    Scaffold (
+        topBar = {
+            androidx.compose.material3.TopAppBar(
+                title = { Text(stringResource(Res.string.app_name)) },
+                actions = {
+                    androidx.compose.material3.IconButton(onClick = navigateToAboutScreen) {
+                        Icon(
+                            imageVector = androidx.compose.material.icons.Icons.Default.Info,
+                            contentDescription = "About App"
+                        )
+                    }
+                }
+            )
+        }
+    ) { paddingValues ->
 
         Box(
             modifier = modifier
@@ -86,13 +107,11 @@ fun SharedTransitionScope.PlanetsScreen(
                         else -> false
                     }
                 ) { page ->
-
                     PageItem(
                         animatedVisibilityScope = animatedVisibilityScope,
                         planet = state.planets.sortedBy { it.planetOrder }[page],
                         navigateToPlanetDetailScreen = navigateToPlanetDetailScreen
                     )
-
                 }
 
                 PageNavigator(
@@ -154,11 +173,12 @@ fun SharedTransitionScope.PageItem(
 
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+            verticalArrangement = Arrangement.Center,
+            modifier = modifier.padding(horizontal = 16.dp)
         ) {
 
             Text(
-                text = planet.name,
+                text = getLocalizedPlanetName(planet.name),
                 fontSize = 36.sp,
                 fontWeight = FontWeight.Bold
             )
@@ -171,13 +191,44 @@ fun SharedTransitionScope.PageItem(
                 }
             ) {
                 Text(
-                    text = "View",
+                    text = stringResource(Res.string.view_button),
                     fontWeight = FontWeight.Bold
                 )
             }
 
         }
 
+    }
+}
+
+
+@Composable
+fun getLocalizedPlanetName(englishName: String): String {
+    return when (englishName) {
+        "Mercury" -> stringResource(Res.string.planet_mercury)
+        "Venus" -> stringResource(Res.string.planet_venus)
+        "Earth" -> stringResource(Res.string.planet_earth)
+        "Mars" -> stringResource(Res.string.planet_mars)
+        "Jupiter" -> stringResource(Res.string.planet_jupiter)
+        "Saturn" -> stringResource(Res.string.planet_saturn)
+        "Uranus" -> stringResource(Res.string.planet_uranus)
+        "Neptune" -> stringResource(Res.string.planet_neptune)
+        else -> englishName
+    }
+}
+
+@Composable
+fun getLocalizedPlanetDescription(englishName: String): String {
+    return when (englishName) {
+        "Mercury" -> stringResource(Res.string.desc_mercury)
+        "Venus" -> stringResource(Res.string.desc_venus)
+        "Earth" -> stringResource(Res.string.desc_earth)
+        "Mars" -> stringResource(Res.string.desc_mars)
+        "Jupiter" -> stringResource(Res.string.desc_jupiter)
+        "Saturn" -> stringResource(Res.string.desc_saturn)
+        "Uranus" -> stringResource(Res.string.desc_uranus)
+        "Neptune" -> stringResource(Res.string.desc_neptune)
+        else -> ""
     }
 }
 

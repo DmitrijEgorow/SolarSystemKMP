@@ -10,6 +10,12 @@ plugins {
     alias(libs.plugins.compose.compiler)
 }
 
+compose.resources {
+    publicResClass = true
+    packageOfResClass = "solarsystemkmp.composeapp.generated.resources"
+    generateResClass = auto
+}
+
 kotlin {
 
     androidTarget {

@@ -16,3 +16,4 @@ data class Planet(
     val source: String,
     val wikiLink: String
 )
+

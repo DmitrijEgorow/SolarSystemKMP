@@ -9,6 +9,7 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import planets.presentation.AboutScreen
 import planets.presentation.PlanetDetailScreen
 import planets.presentation.PlanetsScreen
 
@@ -22,6 +23,7 @@ fun Navigation(
             navController = navController as NavHostController,
             startDestination = PLANETS_SCREEN_ROUTE
         ) {
+            // Главный экран со списком планет
             composable(
                 route = PLANETS_SCREEN_ROUTE
             ) {
@@ -29,9 +31,23 @@ fun Navigation(
                     animatedVisibilityScope = this,
                     navigateToPlanetDetailScreen = { planetId ->
                         navController.navigate(PLANET_DETAIL_SCREEN_ROUTE + "/${planetId}")
+                    },
+                    navigateToAboutScreen = {
+                        navController.navigate(ABOUT_SCREEN_ROUTE)
                     }
                 )
             }
+
+            // Экран "О приложении" (НОВЫЙ)
+            composable(
+                route = ABOUT_SCREEN_ROUTE
+            ) {
+                AboutScreen(
+                    onBack = { navController.popBackStack() }
+                )
+            }
+
+            // Экран детальной информации о планете
             composable(
                 route = "$PLANET_DETAIL_SCREEN_ROUTE/{planetId}",
                 arguments = listOf(navArgument("planetId") { type = NavType.IntType })

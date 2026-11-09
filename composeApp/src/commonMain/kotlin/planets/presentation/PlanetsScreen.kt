@@ -20,14 +20,17 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SkipPrevious
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -35,6 +38,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -43,15 +47,22 @@ import androidx.window.core.layout.WindowWidthSizeClass
 import coil3.compose.AsyncImage
 import getPlatform
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import planets.domain.domain.Planet
+// ВАЖНО: эти импорты могут быть другими в твоем проекте.
+// Если они красные - нажми Alt+Enter и выбери правильные из solarsystem.composeapp.generated.resources
+import solarsystem.composeapp.generated.resources.Res
+import solarsystem.composeapp.generated.resources.error_loading
+import solarsystem.composeapp.generated.resources.view_button
 
-@OptIn(ExperimentalSharedTransitionApi::class)
+@OptIn(ExperimentalSharedTransitionApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun SharedTransitionScope.PlanetsScreen(
     modifier: Modifier = Modifier,
     animatedVisibilityScope: AnimatedVisibilityScope,
     navigateToPlanetDetailScreen: (Int) -> Unit,
+    navigateToAboutScreen: () -> Unit // <-- НОВЫЙ ПАРАМЕТР
 ) {
 
     val planetsViewModel = koinInject<PlanetsViewModel>()
@@ -63,7 +74,21 @@ fun SharedTransitionScope.PlanetsScreen(
     val windowAdaptiveInfo = currentWindowAdaptiveInfo()
     val isCompacted = windowAdaptiveInfo.windowSizeClass.windowWidthSizeClass == WindowWidthSizeClass.COMPACT
 
-    Scaffold { paddingValues ->
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Солнечная система") },
+                actions = {
+                    IconButton(onClick = navigateToAboutScreen) {
+                        Icon(
+                            imageVector = Icons.Default.Info,
+                            contentDescription = "О приложении"
+                        )
+                    }
+                }
+            )
+        }
+    ) { paddingValues ->
 
         Box(
             modifier = modifier
@@ -111,11 +136,22 @@ fun SharedTransitionScope.PlanetsScreen(
                 )
             }
 
+            // БЛОК ОШИБКИ (с использованием строкового ресурса)
+            if (state.error != null) {
+                Text(
+                    text = stringResource(Res.string.error_loading), // Используем ресурс
+                    color = Color.Red,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = modifier.align(Alignment.Center).padding(16.dp)
+                )
+            }
+
         }
 
-    }
+    } // Закрываем Scaffold
 
-}
+} // Закрываем функцию PlanetsScreen
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
@@ -171,7 +207,7 @@ fun SharedTransitionScope.PageItem(
                 }
             ) {
                 Text(
-                    text = "View",
+                    text = stringResource(Res.string.view_button), // Используем ресурс
                     fontWeight = FontWeight.Bold
                 )
             }

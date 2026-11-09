@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">Солнечная система</string>
+    <string name="error_loading">Не удалось загрузить данные. Проверьте подключение к интернету.</string>
+    <string name="view_button">Смотреть</string>
+    <string name="about_app">О приложении</string>
+    <string name="developer">Разработчик: Твое Имя</string>
+    <string name="version">Версия: 1.0.0</string>
+</resources>
